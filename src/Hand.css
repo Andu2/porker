@@ -1,0 +1,12 @@
+div.hand {
+	margin: 10px 0;
+}
+
+div.in-hand, div.on-the-board {
+	display: inline-block;
+	margin-left: 5px;
+}
+
+div.in-hand + div.on-the-board {
+	margin-left:  20px;
+}

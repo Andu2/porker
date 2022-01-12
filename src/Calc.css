@@ -1,0 +1,30 @@
+div.calc-wrap {
+	width: 800px;
+	padding: 3px;
+	text-align: left;
+	margin: 0 auto;
+	border-radius: 10px;
+	background-color: #481cac;
+	margin-bottom: 10px;
+}
+
+div.calc {
+	border: 3px solid #5be8e5;
+	border-radius: 8px;
+	padding: 10px;
+	color: #d9fd70;
+	display: flex;
+	column-gap: 10px;
+}
+
+div.hand-result {
+	font-size: 18pt;
+	color: white;
+	font-weight: bold;
+}
+
+#link-bonuses-header {
+	color: white;
+	font-size: 18pt;
+	font-weight: bold;
+}

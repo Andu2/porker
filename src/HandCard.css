@@ -1,0 +1,12 @@
+div.hand-card {
+	display: inline-block;
+	width: 108px;
+	height: 147px;
+	text-align: center;
+	cursor: pointer;
+	user-select: none;
+}
+
+div.hand-card.selected {
+	opacity: 0.6;
+}

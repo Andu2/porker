@@ -1,0 +1,13 @@
+div.card-option {
+	display: inline-block;
+	width: 72px;
+	height: 98px;
+	text-align: center;
+	cursor: pointer;
+	user-select: none;
+	margin-left: 4px;
+}
+
+div.card-option.selected {
+	opacity: 0.5;
+}
