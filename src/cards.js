@@ -3,48 +3,174 @@ export const values = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "
 
 // https://d4dj.fandom.com/wiki/D4DJ_Groovy_Mix/Titles/Event#Poker_Event
 export const CHAR_LINKS = {
-	"DJ Mash & Link": 					["Rinku", "Maho"],
-	"Peaceful Tea Time": 				["Rei", "Esora"],
-	"Cousins": 							["Shinobu", "Nagisa"],
-	"Sun and Moon": 					["Rika", "Tsubaki"],
-	"Maid Tutor": 						["Saori", "Miyu"],
-	"Authentic Curry": 					["Muni", "Rei"],
-	"Peaky & Peaky": 					["Kyoko", "Shinobu"],
-	"Power of Cooking": 				["Nagisa", "Hiiro"],
-	"Our Destiny Forever": 				["Tsubaki", "Aoi"],
-	"Enjoy & Relax": 					["Rika", "Marika"],
-	"Prank Master": 					["Kurumi", "Miiko"],
-	"The More We Fight": 				["Towa", "Noa"],
-	"Muscle Union": 					["Yuka", "Ibuki", "Dalia"],
-	"Cosplay Buddy": 					["Muni", "Towa", "Noa", "Hiiro", "Haruna"],
-	"Remix Contest!!": 					["Maho", "Shinobu", "Saki"],
-	"Childhood Friend's Duo": 			["Rinku", "Muni"],
-	"Happy Around!": 					["Rinku", "Maho", "Muni", "Rei"],
-	"Absolute Peak": 					["Kyoko", "Shinobu", "Yuka", "Esora"],
-	"Colored Universe": 				["Saki", "Ibuki", "Towa", "Noa"],
-	"Hyped-Up Mermaids": 				["Rika", "Marika", "Saori", "Dalia"],
-	"Soaring Phosphorus Fire": 			["Tsubaki", "Nagisa", "Hiiro", "Aoi"],
-	"May I Have Your Attention?": 		["Miyu", "Haruna", "Kurumi", "Miiko"],
-	"Karate Punch!": 					["Maho", "Dalia"],
-	"Fellow Pupils": 					["Kyoko", "Tsubaki"],
-	"Choir": 							["Tsubaki", "Miyu"],
-	"Best Moment": 						["Yuka", "Towa"],
-	"Memorable School Festival": 		["Saori", "Nagisa"],
-	"Cat Tamer": 						["Saki", "Ibuki", "Dalia"],
-	"Demure Beauty": 					["Rei", "Marika"],
-	"The DJ of Dreams": 				["Aoi", "Haruna"],
-	"Watching Party": 					["Noa", "Kurumi"],
-	"Lovely Beam": 						["Esora", "Miiko"],
-	"Most Important Thing": 			["Rinku", "Rei"],
-	"HapiAra Parent Association": 		["Maho", "Muni"],
-	"Morning Call": 					["Tsubaki", "Hiiro"],
-	"Popcorn Union": 					["Aoi", "Nagisa"],
-	"overDress": 						["Miyu", "Aoi"],
-	"Persona Ride": 					["Shinobu", "Haruna"],
-	"You Really Love It": 				["Hiiro", "Shinobu"],
-	"The Art of Food Stall Tour": 		["Miiko", "Nagisa"],
-	"Midnight Tag": 					["Dalia", "Saori"],
-	"I'm not afraid of being alone!": 	["Yuka", "Ibuki"]
+	"DJ Mash & Link": {
+		chars: ["Rinku", "Maho"],
+		bonus: 1000
+	},
+	"Peaceful Tea Time": {
+		chars: ["Rei", "Esora"],
+		bonus: 1000
+	},
+	"Cousins": {
+		chars: ["Shinobu", "Nagisa"],
+		bonus: 1000
+	},
+	"Sun and Moon": {
+		chars: ["Rika", "Tsubaki"],
+		bonus: 1000
+	},
+	"Maid Tutor": {
+		chars: ["Saori", "Miyu"],
+		bonus: 1000
+	},
+	"Authentic Curry": {
+		chars: ["Muni", "Rei"],
+		bonus: 1000
+	},
+	"Peaky & Peaky": {
+		chars: ["Kyoko", "Shinobu"],
+		bonus: 1000
+	},
+	"Power of Cooking": {
+		chars: ["Nagisa", "Hiiro"],
+		bonus: 1000
+	},
+	"Our Destiny Forever": {
+		chars: ["Tsubaki", "Aoi"],
+		bonus: 1000
+	},
+	"Enjoy & Relax": {
+		chars: ["Rika", "Marika"],
+		bonus: 1000
+	},
+	"Prank Master": {
+		chars: ["Kurumi", "Miiko"],
+		bonus: 1000
+	},
+	"The More We Fight": {
+		chars: ["Towa", "Noa"],
+		bonus: 1000
+	},
+	"Muscle Union": {
+		chars: ["Yuka", "Ibuki", "Dalia"],
+		bonus: 2000
+	},
+	"Cosplay Buddy": {
+		chars: ["Muni", "Towa", "Noa", "Hiiro", "Haruna"],
+		bonus: 5000
+	},
+	"Remix Contest!!": {
+		chars: ["Maho", "Shinobu", "Saki"],
+		bonus: 2000
+	},
+	"Childhood Friend's Duo": {
+		chars: ["Rinku", "Muni"],
+		bonus: 1000
+	},
+	"Happy Around!": {
+		chars: ["Rinku", "Maho", "Muni", "Rei"],
+		bonus: 4000
+	},
+	"Absolute Peak": {
+		chars: ["Kyoko", "Shinobu", "Yuka", "Esora"],
+		bonus: 4000
+	},
+	"Colored Universe": {
+		chars: ["Saki", "Ibuki", "Towa", "Noa"],
+		bonus: 4000
+	},
+	"Hyped-Up Mermaids": {
+		chars: ["Rika", "Marika", "Saori", "Dalia"],
+		bonus: 4000
+	},
+	"Soaring Phosphorus Fire": {
+		chars: ["Tsubaki", "Nagisa", "Hiiro", "Aoi"],
+		bonus: 4000
+	},
+	"May I Have Your Attention?": {
+		chars: ["Miyu", "Haruna", "Kurumi", "Miiko"],
+		bonus: 4000
+	},
+	"Karate Punch!": {
+		chars: ["Maho", "Dalia"],
+		bonus: 1000
+	},
+	"Fellow Pupils": {
+		chars: ["Kyoko", "Tsubaki"],
+		bonus: 1000
+	},
+	"Choir": {
+		chars: ["Tsubaki", "Miyu"],
+		bonus: 1000
+	},
+	"Best Moment": {
+		chars: ["Yuka", "Towa"],
+		bonus: 1000
+	},
+	"Memorable School Festival": {
+		chars: ["Saori", "Nagisa"],
+		bonus: 1000
+	},
+	"Cat Tamer": {
+		chars: ["Saki", "Ibuki", "Dalia"],
+		bonus: 2000
+	},
+	"Demure Beauty": {
+		chars: ["Rei", "Marika"],
+		bonus: 1000
+	},
+	"The DJ of Dreams": {
+		chars: ["Aoi", "Haruna"],
+		bonus: 1000
+	},
+	"Watching Party": {
+		chars: ["Noa", "Kurumi"],
+		bonus: 1000
+	},
+	"Lovely Beam": {
+		chars: ["Esora", "Miiko"],
+		bonus: 1000
+	},
+	"Most Important Thing": {
+		chars: ["Rinku", "Rei"],
+		bonus: 1000
+	},
+	"HapiAra Parent Association": {
+		chars: ["Maho", "Muni"],
+		bonus: 1000
+	},
+	"Morning Call": {
+		chars: ["Tsubaki", "Hiiro"],
+		bonus: 1000
+	},
+	"Popcorn Union": {
+		chars: ["Aoi", "Nagisa"],
+		bonus: 1000
+	},
+	"overDress": {
+		chars: ["Miyu", "Aoi"],
+		bonus: 1000
+	},
+	"Persona Ride": {
+		chars: ["Shinobu", "Haruna"],
+		bonus: 1000
+	},
+	"You Really Love It": {
+		chars: ["Hiiro", "Shinobu"],
+		bonus: 1000
+	},
+	"The Art of Food Stall Tour": {
+		chars: ["Miiko", "Nagisa"],
+		bonus: 1000
+	},
+	"Midnight Tag": {
+		chars: ["Dalia", "Saori"],
+		bonus: 1000
+	},
+	"I'm not afraid of being alone!": {
+		chars: ["Yuka", "Ibuki"],
+		bonus: 1000
+	},
 }
 
 // CLUBS/HEARTS   DIAMONDS/SPADES

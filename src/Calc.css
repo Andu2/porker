@@ -48,6 +48,10 @@ span.link-bonus-amount {
 	color: #5be8e5;
 }
 
+span.decision {
+	color: #f74f5d
+}
+
 div.link + div.link {
 	margin-top: 6px;
 }

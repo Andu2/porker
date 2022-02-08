@@ -812,7 +812,7 @@ function getHandOdds_LessDumb(hand) {
 	}
 }
 
-function getHandOdds_Base() {
+export function getHandOdds_Base() {
 	let possibleHands = combination(52, 7);
 	let counts = {
 		"Royal Flush": 4324,
@@ -1040,13 +1040,6 @@ export function getHandOdds(hand) {
 	}
 }
 
-const LINK_BONUS_COINS = {
-	2: 1000,
-	3: 2000,
-	4: 4000,
-	5: 5000
-}
-
 export function getLinkBonuses(hand) {
 	let chars = {};
 	hand.forEach(function(cardValue) {
@@ -1056,14 +1049,14 @@ export function getLinkBonuses(hand) {
 	})
 	let linkBonuses = [];
 	for (let linkName in CHAR_LINKS) {
-		let hasAllChars = CHAR_LINKS[linkName].every(function(charName) {
+		let hasAllChars = CHAR_LINKS[linkName].chars.every(function(charName) {
 			return chars[charName];
 		})
 		if (hasAllChars) {
 			linkBonuses.push({
 				linkName: linkName,
-				chars: CHAR_LINKS[linkName],
-				bonus: LINK_BONUS_COINS[CHAR_LINKS[linkName].length]
+				chars: CHAR_LINKS[linkName].chars,
+				bonus: CHAR_LINKS[linkName].bonus
 			});
 		}
 	}
