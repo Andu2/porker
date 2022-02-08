@@ -54,7 +54,7 @@ function Calc(props) {
 			</div>
 			<table><thead>
 				<tr>
-					<th style={{width: "130px"}}>Hand</th>
+					<th style={{width: "140px"}}>Hand</th>
 					<th style={{width: "100px"}}>{displayMode === "counts" ? "Count" : "Odds"}</th>
 					<th style={{width: "120px"}}></th>
 				</tr>
