@@ -24,8 +24,11 @@ function CardSelect(props) {
 						addToHand={props.addToHand} />
 				})}
 			</div>);
-		})}
+		}).reduce(function(accum, x) { return accum === null ? x : <>{accum}<br />{x}</>}, null)}
 	</div>)
 }
+
+// Can I just take a moment to rant about how stupid it is that I have to resort to the above hack
+// just to insert br tags in between my fucking divs? I mean what the fuck is this?
 
 export default CardSelect;

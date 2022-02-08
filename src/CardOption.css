@@ -5,6 +5,9 @@ div.card-option {
 	text-align: center;
 	cursor: pointer;
 	user-select: none;
+}
+
+div.card-option + div.card-option {
 	margin-left: 4px;
 }
 

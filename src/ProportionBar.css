@@ -1,4 +1,15 @@
 div.proportion-bar {
-	background-color: #5be8e5;
+	background-color: #b4fffd;
+	position: absolute;
+	left: 0;
+	top: 0;
+	bottom: 0;
+}
+
+div.proportion-bar-back {
+	position: relative;
+	background-color: #12151b;
 	height: 20px;
+	border-radius: 2px;
+	overflow: hidden;
 }

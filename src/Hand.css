@@ -1,5 +1,6 @@
 div.hand {
-	margin: 10px 0;
+	margin: 12px 0 10px 0;
+	height: 147px;
 }
 
 div.in-hand, div.on-the-board {

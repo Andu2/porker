@@ -1,5 +1,6 @@
 import "./Calc.css";
-import { getHandOdds, getHandResult, getLinkBonuses } from "./poker";
+import { getHandOdds, getHandResult, getLinkBonuses, HAND_PRIORITY } from "./poker";
+import { useState } from "react";
 import ProportionBar from "./ProportionBar";
 
 // 133784560 hands from 7
@@ -7,94 +8,88 @@ import ProportionBar from "./ProportionBar";
 // 
 // make number red if 0
 
+const ROUND_DECIMALS = 3;
+
 function roundPct(p) {
-	return Math.round(p * 10000) / 100;
+	return Math.round(p * 100 * Math.pow(10, ROUND_DECIMALS)) / Math.pow(10, ROUND_DECIMALS);
 }
 
 function round(p) {
-	return Math.round(p * 100) / 100;
+	return Math.round(p * Math.pow(10, ROUND_DECIMALS)) / Math.pow(10, ROUND_DECIMALS);
 }
 
 function Calc(props) {
 	let odds = getHandOdds(props.hand);
 	let linkBonuses = getLinkBonuses(props.hand)
 
+	// percents / counts
+	const [displayMode, setDisplayMode] = useState("percents");
+	// 5 / 1
+	const [voltage, setVoltage] = useState(5);
+	const [coinsPerVoltage, setCoinsPerVoltage] = useState(400);
+
+	function handleDisplayMode(e) {
+		setDisplayMode(e.target.value);
+	}
+	function handleVoltage(e) {
+		setVoltage(e.target.value * 1);
+	}
+	function handleCoinsPerVoltage(e) {
+		setCoinsPerVoltage(e.target.value);
+	}
+
+	const displayOrder = [];
+	for (let i = HAND_PRIORITY.length - 1; i >= 0; i--) {
+		displayOrder.push(HAND_PRIORITY[i]);
+	}
+
 	return (<div className="calc-wrap"><div className="calc">
 		<div id="odds">
-			<div className="hand-result">{getHandResult(props.hand)}</div>
-			<table><tbody>
+			<div id="odds-control">
+				<label>Display:</label>
+				<select value={displayMode} onChange={handleDisplayMode}>
+					<option value="percents">Percentages</option>
+					<option value="counts">Counts</option>
+				</select>
+			</div>
+			<table><thead>
 				<tr>
-					<td>No Pair:</td>
-					<td>{odds.numNoPair}</td>
-					<td>{roundPct(odds.numNoPair / odds.possibleHands)}</td>
-					<td><ProportionBar length={odds.numNoPair / odds.possibleHands} /></td>
+					<th style={{width: "130px"}}>Hand</th>
+					<th style={{width: "100px"}}>{displayMode === "counts" ? "Count" : "Odds"}</th>
+					<th style={{width: "120px"}}></th>
 				</tr>
-				<tr>
-					<td>One Pair:</td>
-					<td>{odds.numOnePair}</td>
-					<td>{roundPct(odds.numOnePair / odds.possibleHands)}</td>
-					<td><ProportionBar length={odds.numOnePair / odds.possibleHands} /></td>
-				</tr>
-				<tr>
-					<td>Two Pair:</td>
-					<td>{odds.numTwoPair}</td>
-					<td>{roundPct(odds.numTwoPair / odds.possibleHands)}</td>
-					<td><ProportionBar length={odds.numTwoPair / odds.possibleHands} /></td>
-				</tr>
-				<tr>
-					<td>Three of a Kind:</td>
-					<td>{odds.numThreeOfAKind}</td>
-					<td>{roundPct(odds.numThreeOfAKind / odds.possibleHands)}</td>
-					<td><ProportionBar length={odds.numThreeOfAKind / odds.possibleHands} /></td>
-				</tr>
-				<tr>
-					<td>Straight</td>
-					<td>{odds.numStraight}</td>
-					<td>{roundPct(odds.numStraight / odds.possibleHands)}</td>
-					<td><ProportionBar length={odds.numStraight / odds.possibleHands} /></td>
-				</tr>
-				<tr>
-					<td>Flush:</td>
-					<td>{odds.numFlush}</td>
-					<td>{roundPct(odds.numFlush / odds.possibleHands)}</td>
-					<td><ProportionBar length={odds.numFlush / odds.possibleHands} /></td>
-				</tr>
-				<tr>
-					<td>Full House:</td>
-					<td>{odds.numFullHouse}</td>
-					<td>{roundPct(odds.numFullHouse / odds.possibleHands)}</td>
-					<td><ProportionBar length={odds.numFullHouse / odds.possibleHands} /></td>
-				</tr>
-				<tr>
-					<td>Four of a Kind:</td>
-					<td>{odds.numFourOfAKind}</td>
-					<td>{roundPct(odds.numFourOfAKind / odds.possibleHands)}</td>
-					<td><ProportionBar length={odds.numFourOfAKind / odds.possibleHands} /></td>
-				</tr>
-				<tr>
-					<td>Straight Flush:</td>
-					<td>{odds.numStraightFlush}</td>
-					<td>{roundPct(odds.numStraightFlush / odds.possibleHands)}</td>
-					<td><ProportionBar length={odds.numStraightFlush / odds.possibleHands} /></td>
-				</tr>
-				<tr>
-					<td>Royal Flush:</td>
-					<td>{odds.numRoyalFlush}</td>
-					<td>{roundPct(odds.numRoyalFlush / odds.possibleHands)}</td>
-					<td><ProportionBar length={odds.numRoyalFlush / odds.possibleHands} /></td>
-				</tr>
+			</thead><tbody>
+				{displayOrder.map(function(handName) {
+					return (<tr>
+						<td>{handName}:</td>
+						<td><span className="number">{displayMode === "counts" ? odds[handName] : roundPct(odds[handName] / odds.possibleHands) + "%"}</span></td>
+						<td><ProportionBar length={odds[handName] / odds.possibleHands} /></td>
+					</tr>)
+				})}
 			</tbody></table>
 		</div>
-		<div id="links">
-			<div id="link-bonuses-header">Link Bonuses</div>
-			<div className="hand-linkbonuses">
-				{linkBonuses.map(function(linkName, i) {
-					return <div key={i}>{linkName}</div>
-				})}
-			</div>
-		</div>
 		<div id="misc">
-			Average Multiplier: {round(odds.avgMult)}
+			<div id="misc-control">
+				<label>Voltage:</label>
+				<select value={voltage} onChange={handleVoltage}>
+					<option value="5">5</option>
+					<option value="1">1</option>
+				</select>
+				<label>Coins per Voltage:</label>
+				<input type="number" min="0" max="1000" value={coinsPerVoltage} onChange={handleCoinsPerVoltage} />
+			</div>
+			Average Multiplier: <span className="number">{round(odds.avgMult)}</span>
+			<div id="links">
+				<div id="link-bonuses-header">Link Bonuses</div>
+				<div className="hand-linkbonuses">
+					{linkBonuses.map(function(link, i) {
+						return (<div className="link" key={i}>
+							<div className="link-name"><span className="link-bonus-amount">[{link.bonus}]</span> {link.linkName}</div>
+							<div className="link-chars"> > {link.chars.join(", ")}</div>
+						</div>)
+					})}
+				</div>
+			</div>
 		</div>
 	</div></div>)
 }

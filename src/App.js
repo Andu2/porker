@@ -4,6 +4,7 @@ import CardSelect from "./CardSelect";
 import Hand from "./Hand";
 import Calc from "./Calc";
 import { CARDS } from "./cards";
+import { MULTS, getHandResult } from "./poker";
 
 import logo from "./logo.svg";
 import "./App.css";
@@ -64,6 +65,14 @@ function App() {
 		setHand([...tempHand]);
 	}
 
+	function getStyledHandResult(hand) {
+		let result = getHandResult(hand);
+		if (MULTS[result] >= 2000) return result + "!!!";
+		else if (MULTS[result] >= 250) return result + "!!";
+		else if (MULTS[result] >= 50) return result + "!";
+		else return result;
+	}
+
 	return (
 		<div className="App">
 			<header className="App-header">
@@ -79,9 +88,14 @@ function App() {
 			<CardSelect hand={hand} addToHand={addToHand} />
 			<Hand hand={hand} removeFromHand={removeFromHand} />
 			<div id="control">
-				<div className="button" onClick={addRandom}>Random Next</div>
-				<div className="button" onClick={randomAll}>Random All</div>
-				<div className="button" onClick={clear}>Clear</div>
+				<div id="control-buttons">
+					<div className="button" onClick={addRandom}>Random Next</div>
+					<div className="button" onClick={randomAll}>Random All</div>
+					<div className="button" onClick={clear}>Clear</div>
+				</div>
+				<div id="control-handresult">
+					{getStyledHandResult(hand)}
+				</div>
 			</div>
 			<Calc hand={hand} />
 		</div>

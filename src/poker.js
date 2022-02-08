@@ -1,17 +1,22 @@
 import { CARDS, CHAR_LINKS } from "./cards";
 
-const MULTS = {
-	"Royal Flush!!!": 2000,
-	"Straight Flush!!": 1000,
-	"Four of a Kind!!": 250,
-	"Full House!": 100,
-	"Flush!": 75,
-	"Straight!": 50,
+export const MULTS = {
+	"Royal Flush": 2000,
+	"Straight Flush": 1000,
+	"Four of a Kind": 250,
+	"Full House": 100,
+	"Flush": 75,
+	"Straight": 50,
 	"Three of a Kind": 25,
 	"Two Pair": 15,
 	"One Pair": 10,
 	"No Pair": 1
 }
+
+export const HAND_PRIORITY = [
+	"Royal Flush", "Straight Flush", "Four of a Kind", "Full House", 
+	"Flush", "Straight", "Three of a Kind", "Two Pair", "One Pair", "No Pair"
+]
 
 const LINK_BONUS = 1000;
 
@@ -74,12 +79,10 @@ function handHasOnePair(handObj) {
 
 function handHasTwoPair(handObj) {
 	let numberCounts = getNumberCountObject();
+	let pairs = 0;
 	for (let i = 0; i < handObj.length; i++) {
 		numberCounts[handObj[i].number]++;
-	}
-	let pairs = 0;
-	for (let number in numberCounts) {
-		if (numberCounts[number] >= 2) {
+		if (numberCounts[handObj[i].number] === 2) {
 			pairs++;
 			if (pairs >= 2) return true;
 		}
@@ -129,20 +132,19 @@ function handHasFlush(handObj) {
 
 function handHasFullHouse(handObj) {
 	let numberCounts = getNumberCountObject();
-	for (let i = 0; i < handObj.length; i++) {
-		numberCounts[handObj[i].number]++;
-	}
 	let pair = 0;
 	let three = 0;
-	for (let number in numberCounts) {
-		if (numberCounts[number] >= 3) {
+	for (let i = 0; i < handObj.length; i++) {
+		numberCounts[handObj[i].number]++;
+		if (numberCounts[handObj[i].number] === 3) {
 			three++;
+			pair--;
 		}
-		else if (numberCounts[number] >= 2) {
+		else if (numberCounts[handObj[i].number] === 2) {
 			pair++;
 		}
+		if (pair && three) return true;
 	}
-	if ((pair && three) || three >= 2) return true;
 }
 
 function handHasFourOfAKind(handObj) {
@@ -198,22 +200,22 @@ export function getHandResult(hand) {
 	})
 
 	if (handHasRoyalFlush(handObj)) {
-		return "Royal Flush!!!"
+		return "Royal Flush"
 	}
 	else if (handHasStraightFlush(handObj)) {
-		return "Straight Flush!!"
+		return "Straight Flush"
 	}
 	else if (handHasFourOfAKind(handObj)) {
-		return "Four of a Kind!!"
+		return "Four of a Kind"
 	}
 	else if (handHasFullHouse(handObj)) {
-		return "Full House!"
+		return "Full House"
 	}
 	else if (handHasFlush(handObj)) {
-		return "Flush!"
+		return "Flush"
 	}
 	else if (handHasStraight(handObj)) {
-		return "Straight!"
+		return "Straight"
 	}
 	else if (handHasThreeOfAKind(handObj)) {
 		return "Three of a Kind"
@@ -229,7 +231,8 @@ export function getHandResult(hand) {
 	}
 }
 
-function getNumOnePair(handObj) {
+const getNum = {};
+getNum["One Pair"] = function(handObj) {
 	let numberCounts = getNumberCountObject();
 	for (let i = 0; i < handObj.length; i++) {
 		numberCounts[handObj[i].number]++;
@@ -254,7 +257,9 @@ function getNumOnePair(handObj) {
 	return possibilities;
 }
 
-function getNumTwoPair(handObj) {
+// If you have two pair, you cannot get three of a kind without it becoming a full house
+// No df with straight/flush overlap
+getNum["Two Pair"] = function(handObj) {
 	let numberCounts = getNumberCountObject();
 	for (let i = 0; i < handObj.length; i++) {
 		numberCounts[handObj[i].number]++;
@@ -279,14 +284,30 @@ function getNumTwoPair(handObj) {
 	return possibilities;
 }
 
-function getNumThreeOfAKind(handObj) {
+// No df with straight/flush overlap
+getNum["Three of a Kind"] = function(handObj) {
 	let numberCounts = getNumberCountObject();
+	let existingPairs = [];
 	for (let i = 0; i < handObj.length; i++) {
 		numberCounts[handObj[i].number]++;
+		if (numberCounts[handObj[i].number] === 2) {
+			existingPairs.push(handObj[i].number);
+		}
+		if (numberCounts[handObj[i].number] > 3) return 0;
 	}
 
 	let possibilities = 0;
 	for (let number in numberCounts) {
+		// If there is an existing pair that is not this number then this is a full house
+		let notExistingPair = false;
+		for (let pairNum of existingPairs) {
+			if (pairNum !== number) {
+				notExistingPair = true;
+				break;
+			}
+		}
+		if (notExistingPair) continue;
+
 		let numNeeded = (3 - numberCounts[number]);
 		let freeCards = 7 - handObj.length - numNeeded;
 		if (freeCards >= 0) {
@@ -298,16 +319,17 @@ function getNumThreeOfAKind(handObj) {
 }
 
 // subtract out royal flushes and straight flushes later
-function getNumStraight(handObj) {
+getNum["Straight"] = function(handObj) {
 	let numberCounts = getNumberCountObject();
+	let suitCounts = getSuitCountObject();
 	for (let i = 0; i < handObj.length; i++) {
 		numberCounts[handObj[i].number]++;
+		suitCounts[handObj[i].suit]++;
 	}
+	// Need to subtract flushes NOW in fact
 
 	let extraCards = 0;
-
 	let straightCounts = getNumberCountObject();
-	let straightFullCounts = getNumberCountObject();
 	// Interpret these counts as "cards that are in a straight with this card as the low card"
 	for (let i = 1; i <= 13; i++) {
 		if (numberCounts[i] > 0) {
@@ -316,25 +338,45 @@ function getNumStraight(handObj) {
 			let fillIn = i;
 			if (fillIn === 1) {
 				straightCounts[10]++;
-				straightFullCounts[10] += numberCounts[i];
 			}
 			do {
 				if (fillIn <= 10) {
 					straightCounts[fillIn]++;
-					straightFullCounts[fillIn] += numberCounts[i];
 				}
 				fillIn--;
 			} while (i - fillIn < 5 && fillIn >= 1);
 		}
 	}
+	console.log(straightCounts)
 
 	let possibilities = 0;
-	for (let number in straightCounts) {
+	for (let number = 1; number <= 10; number++) {
+		// If we already have the number below then we already counted
+		if (numberCounts[number - 1]) continue;
 		let numNeeded = (5 - straightCounts[number]);
 		let freeCards = 7 - handObj.length - numNeeded;
 		if (freeCards >= 0) {
-			let looseCards = 52 - 7 - (5 * 4) + (3 - extraCards);
-			possibilities += Math.pow(4, numNeeded) * combination(looseCards + freeCards, freeCards)
+			let looseCards = 45;
+			// can't choose the number below this straight because that would be counted as the lower straight
+			if (number > 1) {
+				looseCards -= 4;
+			}
+			let extraHandledCards = numNeeded * 3;
+			let straightPoss = Math.pow(4, numNeeded) * combination(looseCards + freeCards - extraHandledCards, freeCards);
+			if (freeCards >= 1) {
+				// consider 2
+				straightPoss += combination(4, 2) * Math.pow(4, numNeeded - 1) * numNeeded * combination(looseCards + freeCards - extraHandledCards, freeCards - 1);
+			}
+			if (freeCards === 2) {
+				// consider 3 and 2-2
+				straightPoss += combination(4, 3) * Math.pow(4, numNeeded - 1) * numNeeded;
+				if (numNeeded >= 2) {
+					straightPoss += combination(4, 2) * combination(numNeeded, 2) * Math.pow(4, numNeeded - 2);
+				}
+			}
+			
+			console.log("Low " + number + " straight: " + straightPoss);
+			possibilities += straightPoss;
 		}
 	}
 
@@ -342,7 +384,7 @@ function getNumStraight(handObj) {
 }
 
 // subtract out royal flushes and straight flushes later
-function getNumFlush(handObj) {
+getNum["Flush"] = function(handObj) {
 	let suitCounts = getSuitCountObject();
 	for (let i = 0; i < handObj.length; i++) {
 		suitCounts[handObj[i].suit]++;
@@ -376,44 +418,96 @@ function getNumFlush(handObj) {
 	return possibilities;
 }
 
-function getNumFullHouse(handObj) {
+// You may get four of a kind in a full house hand
+getNum["Full House"] = function(handObj) {
 	let numberCounts = getNumberCountObject();
+	let existingPairs = [];
 	for (let i = 0; i < handObj.length; i++) {
 		numberCounts[handObj[i].number]++;
+		if (numberCounts[handObj[i].number] === 2) {
+			existingPairs.push(handObj[i].number);
+		}
 		if (numberCounts[handObj[i].number] > 3) return 0;
 	}
 
 	let possibilities = 0;
+	// console.log("FULL HOUSE--------------------")
+
+	// 3-2
+	for (let numberTriple = 1; numberTriple <= 13; numberTriple++) {
+		for (let numberDouble = 1; numberDouble <= 13; numberDouble++) {
+			if (numberTriple === numberDouble) continue;
+			if (numberCounts[numberDouble] > 2) continue;
+
+			// If there is an existing pair that is neither of these numbers then this is a 3-2-2
+			let notExistingPair = false;
+			for (let pairNum of existingPairs) {
+				if (pairNum !== numberDouble && pairNum !== numberTriple) {
+					notExistingPair = true;
+					break;
+				}
+			}
+			if (notExistingPair) continue;
+
+			let numNeededTriple = 3 - numberCounts[numberTriple];
+			let numNeededDouble = 2 - numberCounts[numberDouble];
+			let freeCards = 7 - handObj.length - numNeededTriple - numNeededDouble;
+			if (freeCards >= 0) {
+				let looseCards = 45 - 3;
+				// SUBTRACT 3-2-2
+				if (freeCards === 1) {
+					looseCards -= 3;
+				}
+				let looseCombos = combination(looseCards + freeCards, freeCards);
+				// SUBTRACT 3-2-2 
+				if (freeCards === 2) {
+					looseCombos -= combination(4, 2) * 11;
+				}
+				let poss32 = combination(4 - numberCounts[numberTriple], numNeededTriple) * 
+					combination(4 - numberCounts[numberDouble], numNeededDouble) * 
+					looseCombos;
+				possibilities += poss32;
+				// console.log("3-2 " + numberTriple + " over " + numberDouble + ": " + poss32)
+			}
+		}
+	}
+
+	// 3-2-2
+	for (let numberTriple = 1; numberTriple <= 13; numberTriple++) {
+		for (let numberDouble1 = 1; numberDouble1 <= 13; numberDouble1++) {
+			for (let numberDouble2 = numberDouble1 + 1; numberDouble2 <= 13; numberDouble2++) {
+				if (numberTriple === numberDouble1 || numberTriple === numberDouble2) continue;
+				if (numberCounts[numberDouble1] > 2) continue;
+				if (numberCounts[numberDouble2] > 2) continue;
+				let numNeededTriple = 3 - numberCounts[numberTriple];
+				let numNeededDouble1 = 2 - numberCounts[numberDouble1];
+				let numNeededDouble2 = 2 - numberCounts[numberDouble2];
+				let freeCards = 7 - handObj.length - numNeededTriple - numNeededDouble1 - numNeededDouble2;
+				if (freeCards >= 0) {
+					let poss322 = combination(4 - numberCounts[numberTriple], numNeededTriple) * 
+						combination(4 - numberCounts[numberDouble1], numNeededDouble1) * 
+						combination(4 - numberCounts[numberDouble2], numNeededDouble2);
+					possibilities += poss322;
+					// console.log("3-2-2 " + numberTriple + " over " + numberDouble1 + " and " + numberDouble2 + ": " + poss322)
+				}
+			}
+		}
+	}
+
+	// 3-3
 	for (let number1 = 1; number1 <= 13; number1++) {
 		for (let number2 = number1 + 1; number2 <= 13; number2++) {
-			// 3-3
-			let num1NeededScen1 = 3 - numberCounts[number1];
-			let num2NeededScen1 = 3 - numberCounts[number2];
-			let freeCardsScen1 = 7 - handObj.length - num1NeededScen1 - num2NeededScen1;
-			if (freeCardsScen1 >= 0) {
-				possibilities += combination(4 - numberCounts[number1], num1NeededScen1) * 
-					combination(4 - numberCounts[number2], num2NeededScen1) * 
-					combination(37 + freeCardsScen1, freeCardsScen1)
+			let numNeeded1 = 3 - numberCounts[number1];
+			let numNeeded2 = 3 - numberCounts[number2];
+			let freeCards = 7 - handObj.length - numNeeded1 - numNeeded2;
+			if (freeCards >= 0) {
+				let looseCards = 45 - 2;
+				let poss33 = combination(4 - numberCounts[number1], numNeeded1) * 
+					combination(4 - numberCounts[number2], numNeeded2) * 
+					combination(looseCards + freeCards, freeCards);
+				possibilities += poss33;
+				// console.log("3-3 " + number1 + " and " + number2 + ": " + poss33) 
 			}
-			// 2-3
-			let num1NeededScen2 = 2 - numberCounts[number1];
-			let num2NeededScen2 = 3 - numberCounts[number2];
-			let freeCardsScen2 = 7 - handObj.length - num1NeededScen2 - num2NeededScen2;
-			if (freeCardsScen2 >= 0) {
-				possibilities += combination(4 - numberCounts[number1], num1NeededScen2) * 
-					combination(4 - numberCounts[number2], num2NeededScen2) * 
-					combination(37 + freeCardsScen2, freeCardsScen2)
-			}
-			// 3-2
-			let num1NeededScen3 = 3 - numberCounts[number1];
-			let num2NeededScen3 = 2 - numberCounts[number2];
-			let freeCardsScen3 = 7 - handObj.length - num1NeededScen3 - num2NeededScen3;
-			if (freeCardsScen3 >= 0) {
-				possibilities += combination(4 - numberCounts[number1], num1NeededScen3) * 
-					combination(4 - numberCounts[number2], num2NeededScen3) * 
-					combination(37 + freeCardsScen3, freeCardsScen3)
-			}
-			// SUBTRACT 3-2-2
 		}
 	}
 
@@ -421,7 +515,7 @@ function getNumFullHouse(handObj) {
 }
 
 // Four of a kind is easy because you can't have a four of a kind in a hand that beats four of a kind
-function getNumFourOfAKind(handObj) {
+getNum["Four of a Kind"] = function(handObj) {
 	let numberCounts = getNumberCountObject();
 	for (let i = 0; i < handObj.length; i++) {
 		numberCounts[handObj[i].number]++;
@@ -439,34 +533,44 @@ function getNumFourOfAKind(handObj) {
 	return possibilities;
 }
 
-function getNumStraightFlush(handObj) {
-	let suitCounts = getSuitCountObject();
-	for (let suit in suitCounts) {
-		suitCounts[suit] = getNumberCountObject();
+// Will subtract out royal flushes later
+getNum["Straight Flush"] = function(handObj) {
+	let straightCounts = getSuitCountObject();
+	let numberCounts = getSuitCountObject();
+	for (let suit in straightCounts) {
+		straightCounts[suit] = getNumberCountObject();
+		numberCounts[suit] = getNumberCountObject();
 	}
 
 	// Interpret these counts as "cards that are in a straight flush with this card as the low card"
 	for (let i = 0; i < handObj.length; i++) {
+		numberCounts[handObj[i].suit][handObj[i].number]++;
 		let fillIn = handObj[i].number;
+		if (fillIn === 1) {
+			straightCounts[handObj[i].suit][10]++;
+		}
 		do {
-			if (fillIn < 10) {
-				suitCounts[handObj[i].suit][fillIn]++;
+			if (fillIn <= 10) {
+				straightCounts[handObj[i].suit][fillIn]++;
 			}
 			fillIn--;
 		} while (handObj[i].number - fillIn < 5 && fillIn >= 1);
 	}
 
-	// need to exclude royal straight from "excess" cards, ex: 9 - K straight
 	let possibilities = 0;
-	for (let suit in suitCounts) {
-		for (let number = 1; number < 10; number++) {
-			let numNeeded = (5 - suitCounts[suit][number]);
+	for (let suit in straightCounts) {
+		for (let number = 1; number <= 10; number++) {
+			// If we already have the card one below this then we already counted
+			if (numberCounts[suit][number - 1]) continue;
+			let numNeeded = (5 - straightCounts[suit][number]);
 			let freeCards = 7 - handObj.length - numNeeded;
-			if (freeCards < 0) continue;
-			else if (freeCards >= 0) {
+			if (freeCards >= 0) {
+				let looseCards = 45;
 				// the number to choose from is one lower because we can't choose the card below
 				// the card this straight starts at. Otherwise we would double-count.
-				possibilities += 1 * combination(44 + freeCards, freeCards)
+				if (number > 1) looseCards--;
+				possibilities += 1 * combination(looseCards + freeCards, freeCards);
+				// console.log(suit + " - " + number + ": " + combination(looseCards + freeCards, freeCards))
 			}
 		}
 	}
@@ -474,7 +578,7 @@ function getNumStraightFlush(handObj) {
 	return possibilities;
 }
 
-function getNumRoyalFlush(handObj) {
+getNum["Royal Flush"] = function(handObj) {
 	let royalCounts = getSuitCountObject();
 	for (let i = 0; i < handObj.length; i++) {
 		if (handObj[i].number === 1 || handObj[i].number >= 10) {
@@ -487,11 +591,16 @@ function getNumRoyalFlush(handObj) {
 		let numNeeded = (5 - royalCounts[suit]);
 		let freeCards = 7 - handObj.length - numNeeded;
 		if (freeCards >= 0) {
-			possibilities += 1 * combination(45 + freeCards, freeCards)
+			let looseCards = 45;
+			possibilities += 1 * combination(looseCards + freeCards, freeCards)
 		}
 	}
 
 	return possibilities;
+}
+
+getNum["No Pair"] = function(handObj) {
+	return 0;
 }
 
 function getHandOdds_Smart(hand) {
@@ -500,29 +609,60 @@ function getHandOdds_Smart(hand) {
 	})
 
 	let possibleHands = combination(52 - hand.length, 7 - hand.length);
+	let minHand = getHandResult(hand);
 
-	let numRoyalFlush = getNumRoyalFlush(handObj);
-	let numStraightFlush = getNumStraightFlush(handObj)
-	let numFourOfAKind = getNumFourOfAKind(handObj);
-	let numFullHouse = getNumFullHouse(handObj);
-	let numFlush = getNumFlush(handObj) - numStraightFlush - numRoyalFlush;
-	let numStraight = getNumStraight(handObj) - numRoyalFlush - numStraightFlush;
-	let numThreeOfAKind = getNumThreeOfAKind(handObj);
-	let numTwoPair = getNumTwoPair(handObj);
-	let numOnePair = getNumOnePair(handObj);
-	let numNoPair = possibleHands - numRoyalFlush - numStraightFlush - numFourOfAKind - numFullHouse - numFlush - numStraight - numThreeOfAKind - numTwoPair - numOnePair;
+	let counts = {
+		"Royal Flush": 0,
+		"Straight Flush": 0,
+		"Four of a Kind": 0,
+		"Full House": 0,
+		"Flush": 0,
+		"Straight": 0,
+		"Three of a Kind": 0,
+		"Two Pair": 0,
+		"One Pair": 0,
+		"No Pair": 0
+	}
+
+	let handsLeft = possibleHands;
+	for (let i = 0; i <= HAND_PRIORITY.indexOf(minHand); i++) {
+		let handName = HAND_PRIORITY[i];
+		if (i === HAND_PRIORITY.indexOf(minHand)) {
+			counts[handName] = handsLeft;
+		}
+		else {
+			let num = getNum[handName](handObj);
+			if (handName == "Straight Flush") {
+				num = Math.max(0, num - counts["Royal Flush"])
+			}
+			else if (handName == "Flush") {
+				num = Math.max(0, num - counts["Royal Flush"] - counts["Straight Flush"])
+			}
+			else if (handName == "Straight") {
+				num = Math.max(0, num - counts["Royal Flush"] - counts["Straight Flush"])
+			}
+			counts[handName] = num;
+			handsLeft -= num;
+		}
+	}
+
+	let totalMult = 0;
+	for (let handName in counts) {
+		totalMult += counts[handName] * MULTS[handName];
+	}
 
 	return {
-		numRoyalFlush: numRoyalFlush,
-		numStraightFlush: numStraightFlush,
-		numFourOfAKind: numFourOfAKind,
-		numFullHouse: numFullHouse,
-		numFlush: numFlush,
-		numStraight: numStraight,
-		numThreeOfAKind: numThreeOfAKind,
-		numTwoPair: numTwoPair,
-		numOnePair: numOnePair,
-		numNoPair: numNoPair,
+		"Royal Flush": counts["Royal Flush"],
+		"Straight Flush": counts["Straight Flush"],
+		"Four of a Kind": counts["Four of a Kind"],
+		"Full House": counts["Full House"],
+		"Flush": counts["Flush"],
+		"Straight": counts["Straight"],
+		"Three of a Kind": counts["Three of a Kind"],
+		"Two Pair": counts["Two Pair"],
+		"One Pair": counts["One Pair"],
+		"No Pair": counts["No Pair"],
+		avgMult: totalMult / possibleHands,
 		possibleHands: possibleHands
 	}
 }
@@ -531,12 +671,12 @@ function getHandOdds_Dumb(hand) {
 	let possibleHands = combination(52 - hand.length, 7 - hand.length);
 
 	let counts = {
-		"Royal Flush!!!": 0,
-		"Straight Flush!!": 0,
-		"Four of a Kind!!": 0,
-		"Full House!": 0,
-		"Flush!": 0,
-		"Straight!": 0,
+		"Royal Flush": 0,
+		"Straight Flush": 0,
+		"Four of a Kind": 0,
+		"Full House": 0,
+		"Flush": 0,
+		"Straight": 0,
 		"Three of a Kind": 0,
 		"Two Pair": 0,
 		"One Pair": 0,
@@ -570,24 +710,341 @@ function getHandOdds_Dumb(hand) {
 	}
 
 	return {
-		numRoyalFlush: counts["Royal Flush!!!"],
-		numStraightFlush: counts["Straight Flush!!"],
-		numFourOfAKind: counts["Four of a Kind!!"],
-		numFullHouse: counts["Full House!"],
-		numFlush: counts["Flush!"],
-		numStraight: counts["Straight!"],
-		numThreeOfAKind: counts["Three of a Kind"],
-		numTwoPair: counts["Two Pair"],
-		numOnePair: counts["One Pair"],
-		numNoPair: counts["No Pair"],
+		"Royal Flush": counts["Royal Flush"],
+		"Straight Flush": counts["Straight Flush"],
+		"Four of a Kind": counts["Four of a Kind"],
+		"Full House": counts["Full House"],
+		"Flush": counts["Flush"],
+		"Straight": counts["Straight"],
+		"Three of a Kind": counts["Three of a Kind"],
+		"Two Pair": counts["Two Pair"],
+		"One Pair": counts["One Pair"],
+		"No Pair": counts["No Pair"],
 		avgMult: totalMult / possibleHands,
 		possibleHands: possibleHands
 	}
 }
 
+// As it turns out, this is more dumb
+function getHandOdds_LessDumb(hand) {
+	let possibleHands = combination(52 - hand.length, 7 - hand.length);
+
+	let counts = {
+		"Royal Flush": 0,
+		"Straight Flush": 0,
+		"Four of a Kind": 0,
+		"Full House": 0,
+		"Flush": 0,
+		"Straight": 0,
+		"Three of a Kind": 0,
+		"Two Pair": 0,
+		"One Pair": 0,
+		"No Pair": 0
+	}
+
+	let availableCards = Object.keys(CARDS).filter(function(cardValue) {
+		return !hand.includes(cardValue);
+	});
+
+	if (hand.length > 2) {
+		countHands(hand, availableCards, 1);
+	}
+
+	function countHands(hand, availableCards, mult) {
+		if (hand.length < 7) {
+			// Simplify a little bit by collapsing identical suits
+			let suitSignatures = {
+				"c": "",
+				"d": "",
+				"h": "",
+				"s": ""
+			}
+			hand.forEach(function(cardValue) {
+				suitSignatures[cardValue.slice(-1)] += cardValue.slice(0, -1) + ",";
+			});
+			let suitGroups = {};
+			let suitSuitGroups = {};
+			for (let suit in suitSignatures) {
+				if (!suitGroups[suitSignatures[suit]]) {
+					suitGroups[suitSignatures[suit]] = {
+						count: 1,
+						primary: suit
+					}
+				}
+				else {
+					suitGroups[suitSignatures[suit]].count++;
+				}
+				suitSuitGroups[suit] = suitGroups[suitSignatures[suit]];
+			}
+
+			availableCards.forEach(function(card, i) {
+				let suit = card.slice(-1);
+				if (suitSuitGroups[suit].primary === suit) {
+					let nextHand = [...hand, card];
+					let nextAvailableCards = availableCards.slice(i+1);
+					countHands(nextHand, nextAvailableCards, mult * suitSuitGroups[suit].count);
+				}
+			});
+		}
+		else {
+			counts[getHandResult(hand)] += mult;
+		}
+	}
+
+	let totalMult = 0;
+	for (let handName in counts) {
+		totalMult += counts[handName] * MULTS[handName];
+	}
+
+	return {
+		"Royal Flush": counts["Royal Flush"],
+		"Straight Flush": counts["Straight Flush"],
+		"Four of a Kind": counts["Four of a Kind"],
+		"Full House": counts["Full House"],
+		"Flush": counts["Flush"],
+		"Straight": counts["Straight"],
+		"Three of a Kind": counts["Three of a Kind"],
+		"Two Pair": counts["Two Pair"],
+		"One Pair": counts["One Pair"],
+		"No Pair": counts["No Pair"],
+		avgMult: totalMult / possibleHands,
+		possibleHands: possibleHands
+	}
+}
+
+function getHandOdds_Base() {
+	let possibleHands = combination(52, 7);
+	let counts = {
+		"Royal Flush": 4324,
+		"Straight Flush": 37260,
+		"Four of a Kind": 224848,
+		"Full House": 3473184,
+		"Flush": 4047644,
+		"Straight": 6180020,
+		"Three of a Kind": 6461620,
+		"Two Pair": 31433400,
+		"One Pair": 58627800,
+		"No Pair": 23294460
+	}
+
+	let totalMult = 0;
+	for (let handName in counts) {
+		totalMult += counts[handName] * MULTS[handName];
+	}
+
+	return {
+		"Royal Flush": counts["Royal Flush"],
+		"Straight Flush": counts["Straight Flush"],
+		"Four of a Kind": counts["Four of a Kind"],
+		"Full House": counts["Full House"],
+		"Flush": counts["Flush"],
+		"Straight": counts["Straight"],
+		"Three of a Kind": counts["Three of a Kind"],
+		"Two Pair": counts["Two Pair"],
+		"One Pair": counts["One Pair"],
+		"No Pair": counts["No Pair"],
+		avgMult: totalMult / possibleHands,
+		possibleHands: possibleHands
+	}
+}
+
+// for debugging
+function countFullHouses(hand) {
+	console.log("COUNTING FULL HOUSES--------------")
+	let possibleHands = combination(52 - hand.length, 7 - hand.length);
+	let availableCards = Object.keys(CARDS).filter(function(cardValue) {
+		return !hand.includes(cardValue);
+	});
+
+	let fullCounts = {};
+	if (hand.length > 2) {
+		countHands(hand, availableCards);
+	}
+
+	function countHands(hand, availableCards) {
+		if (hand.length < 7) {
+			availableCards.forEach(function(card, i) {
+				let nextHand = [...hand, card];
+				let nextAvailableCards = availableCards.slice(i+1);
+				countHands(nextHand, nextAvailableCards);
+			});
+		}
+		else {
+			if (getHandResult(hand) === "Full House") {
+				let triples = [];
+				let pairs = [];
+				let numberCounts = getNumberCountObject();
+				hand.forEach(function(cardValue) {
+					numberCounts[CARDS[cardValue].number]++;
+				});
+				for (let number in numberCounts) {
+					if (numberCounts[number] === 2) {
+						pairs.push(number);
+					}
+					else if (numberCounts[number] === 3) {
+						triples.push(number);
+					}
+				}
+				let fullHouseName = triples.join(", ") + " over " + pairs.join(", ");
+				if (!fullCounts[fullHouseName]) {
+					fullCounts[fullHouseName] = 0;
+				}
+				fullCounts[fullHouseName]++;
+			}
+		}
+	}
+
+	for (let fullType in fullCounts) {
+		console.log(fullType + ": " + fullCounts[fullType]);
+	}
+}
+
+// for debugging
+function countStraightFlushes(hand) {
+	console.log("COUNTING HANDS--------------")
+	let possibleHands = combination(52 - hand.length, 7 - hand.length);
+	let availableCards = Object.keys(CARDS).filter(function(cardValue) {
+		return !hand.includes(cardValue);
+	});
+
+	let handCounts = {};
+	if (hand.length > 2) {
+		countHands(hand, availableCards);
+	}
+
+	function countHands(hand, availableCards) {
+		if (hand.length < 7) {
+			availableCards.forEach(function(card, i) {
+				let nextHand = [...hand, card];
+				let nextAvailableCards = availableCards.slice(i+1);
+				countHands(nextHand, nextAvailableCards);
+			});
+		}
+		else {
+			if (getHandResult(hand) === "Straight Flush") {
+				let numberCounts = getNumberCountObject();
+				let suitCounts = getSuitCountObject();
+				let flushSuit = "";
+				hand.forEach(function(cardValue) {
+					suitCounts[CARDS[cardValue].suit]++;
+					if (suitCounts[CARDS[cardValue].suit] >= 5) {
+						flushSuit = CARDS[cardValue].suit;
+					}
+				});
+				hand.forEach(function(cardValue) {
+					if (CARDS[cardValue].suit === flushSuit) {
+						numberCounts[CARDS[cardValue].number]++;
+					}
+				});
+				let streakStart = 0;
+				let currentStreak = 0;
+				for (let number = 1; number <= 13; number++) {
+					if (numberCounts[number] > 0) {
+						if (currentStreak === 0) {
+							streakStart = number;
+						}
+						currentStreak++;
+						if (number === 13 && numberCounts[1] > 0) {
+							currentStreak++;
+						}
+						if (currentStreak >= 5) break;
+					}
+					else {
+						currentStreak = 0;
+					}
+				}
+				let handName = streakStart;
+				if (!handCounts[handName]) {
+					handCounts[handName] = 0;
+				}
+				handCounts[handName]++;
+			}
+		}
+	}
+
+	for (let handName in handCounts) {
+		console.log(handName + ": " + handCounts[handName]);
+	}
+	console.log("DONE COUNTING HANDS--------------")
+}
+
+// for debugging
+function countStraights(hand) {
+	console.log("COUNTING HANDS--------------")
+	let possibleHands = combination(52 - hand.length, 7 - hand.length);
+	let availableCards = Object.keys(CARDS).filter(function(cardValue) {
+		return !hand.includes(cardValue);
+	});
+
+	let handCounts = {};
+	if (hand.length > 2) {
+		countHands(hand, availableCards);
+	}
+
+	function countHands(hand, availableCards) {
+		if (hand.length < 7) {
+			availableCards.forEach(function(card, i) {
+				let nextHand = [...hand, card];
+				let nextAvailableCards = availableCards.slice(i+1);
+				countHands(nextHand, nextAvailableCards);
+			});
+		}
+		else {
+			if (getHandResult(hand) === "Straight") {
+				let numberCounts = getNumberCountObject();
+				hand.forEach(function(cardValue) {
+					numberCounts[CARDS[cardValue].number]++;
+				});
+				let streakStart = 0;
+				let currentStreak = 0;
+				for (let number = 1; number <= 13; number++) {
+					if (numberCounts[number] > 0) {
+						if (currentStreak === 0) {
+							streakStart = number;
+						}
+						currentStreak++;
+						if (number === 13 && numberCounts[1] > 0) {
+							currentStreak++;
+						}
+						if (currentStreak >= 5) break;
+					}
+					else {
+						currentStreak = 0;
+					}
+				}
+				let handName = streakStart;
+				if (!handCounts[handName]) {
+					handCounts[handName] = 0;
+				}
+				handCounts[handName]++;
+			}
+		}
+	}
+
+	for (let handName in handCounts) {
+		console.log(handName + ": " + handCounts[handName]);
+	}
+	console.log("DONE COUNTING HANDS--------------")
+}
+
 export function getHandOdds(hand) {
-	// return getHandOdds_Smart(hand);
-	return getHandOdds_Dumb(hand);
+	if (hand.length === 0) {
+		// hard-coded to avoid long calculation
+		return getHandOdds_Base();
+	}
+	else {
+		// countStraights(hand);
+		// return getHandOdds_Smart(hand);
+		// return getHandOdds_LessDumb(hand);
+		return getHandOdds_Dumb(hand);
+	}
+}
+
+const LINK_BONUS_COINS = {
+	2: 1000,
+	3: 2000,
+	4: 4000,
+	5: 5000
 }
 
 export function getLinkBonuses(hand) {
@@ -603,7 +1060,11 @@ export function getLinkBonuses(hand) {
 			return chars[charName];
 		})
 		if (hasAllChars) {
-			linkBonuses.push(linkName)
+			linkBonuses.push({
+				linkName: linkName,
+				chars: CHAR_LINKS[linkName],
+				bonus: LINK_BONUS_COINS[CHAR_LINKS[linkName].length]
+			});
 		}
 	}
 	return linkBonuses;
