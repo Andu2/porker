@@ -12,7 +12,7 @@ import "./App.css";
 const MAX_CARDS = 7;
 
 function App() {
-	const [hand, setHand] = useState(["As", "Ad", "Ac", "Ah", "Ks"]);
+	const [hand, setHand] = useState([]);
 
 	function addToHand(card) {
 		// convenience: If card is already in hand, actually remove the card instead

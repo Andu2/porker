@@ -1,5 +1,5 @@
-export const suits = ["c", "d", "h", "s"];
-export const values = ["2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"]
+export const SUITS = ["c", "d", "h", "s"];
+export const VALUES = ["A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"]
 
 // https://d4dj.fandom.com/wiki/D4DJ_Groovy_Mix/Titles/Event#Poker_Event
 export const CHAR_LINKS = {
